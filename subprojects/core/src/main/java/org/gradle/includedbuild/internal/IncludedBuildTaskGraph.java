@@ -17,9 +17,12 @@
 package org.gradle.includedbuild.internal;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 
 public interface IncludedBuildTaskGraph {
     void addTask(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, String taskPath);
 
     boolean isComplete(BuildIdentifier targetBuild, String taskPath);
+
+    void build(BuildIdentifier requestingBuild, ComponentArtifactIdentifier artifact);
 }

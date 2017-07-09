@@ -57,6 +57,8 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
+import org.gradle.includedbuild.internal.IncludedBuildTaskGraph;
+import org.gradle.initialization.BuildIdentity;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
@@ -202,7 +204,9 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         ScriptHandlerFactory factory = new DefaultScriptHandlerFactory(
             get(DependencyManagementServices.class),
             get(FileResolver.class),
-            get(DependencyMetaDataProvider.class));
+            get(DependencyMetaDataProvider.class),
+            get(IncludedBuildTaskGraph.class),
+            get(BuildIdentity.class));
         return factory.create(project.getBuildScriptSource(), project.getClassLoaderScope(), project);
     }
 
