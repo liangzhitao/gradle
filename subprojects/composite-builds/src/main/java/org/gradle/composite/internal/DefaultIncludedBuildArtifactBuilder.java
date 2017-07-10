@@ -15,18 +15,27 @@
  */
 package org.gradle.composite.internal;
 
+import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.artifacts.result.DependencyResult;
+import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.file.FileCollection;
 import org.gradle.includedbuild.internal.IncludedBuildArtifactBuilder;
 import org.gradle.includedbuild.internal.IncludedBuildTaskGraph;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 public class DefaultIncludedBuildArtifactBuilder implements IncludedBuildArtifactBuilder {
     private final List<CompositeProjectComponentArtifactMetadata> artifacts = Lists.newArrayList();
@@ -37,38 +46,64 @@ public class DefaultIncludedBuildArtifactBuilder implements IncludedBuildArtifac
     }
 
     @Override
-    public void add(BuildIdentifier requestingBuild, ComponentArtifactIdentifier artifact) {
-        if (artifact instanceof CompositeProjectComponentArtifactMetadata) {
-            CompositeProjectComponentArtifactMetadata compositeBuildArtifact = (CompositeProjectComponentArtifactMetadata) artifact;
-            artifacts.add(compositeBuildArtifact);
-
-            BuildIdentifier targetBuild = getBuildIdentifier(compositeBuildArtifact);
-            Set<String> tasks = compositeBuildArtifact.getTasks();
-            for (String taskName : tasks) {
-                includedBuildTaskGraph.addTask(requestingBuild, targetBuild, taskName);
+    public FileCollection buildAll(BuildIdentifier currentBuild, final ResolvableDependencies dependencies) {
+        // Collect the included build artifacts
+        final List<CompositeProjectComponentArtifactMetadata> includedBuildArtifacts = Lists.newArrayList();
+        ArtifactCollection artifacts = dependencies.getArtifacts();
+        for (ResolvedArtifactResult artifactResult : artifacts.getArtifacts()) {
+            ComponentArtifactIdentifier componentArtifactIdentifier = artifactResult.getId();
+            if (componentArtifactIdentifier instanceof CompositeProjectComponentArtifactMetadata) {
+                CompositeProjectComponentArtifactMetadata compositeBuildArtifact = (CompositeProjectComponentArtifactMetadata) componentArtifactIdentifier;
+                includedBuildArtifacts.add(compositeBuildArtifact);
             }
         }
-    }
 
-    @Override
-    public void buildAll() {
-        for (CompositeProjectComponentArtifactMetadata artifact : artifacts) {
+        if (includedBuildArtifacts.isEmpty()) {
+            return artifacts.getArtifactFiles();
+        }
+
+        // Get the graph of builds
+        final Multimap<BuildIdentifier, BuildIdentifier> requestingBuilds = getBuildGraph(dependencies);
+        for (CompositeProjectComponentArtifactMetadata artifact : includedBuildArtifacts) {
+            BuildIdentifier targetBuild = getBuildIdentifier(artifact);
+            Collection<BuildIdentifier> buildIdentifiers = requestingBuilds.get(targetBuild);
+            if (buildIdentifiers.isEmpty()) {
+                buildIdentifiers = Collections.singleton(currentBuild);
+            }
+            for (BuildIdentifier requestingBuild : buildIdentifiers) {
+                for (String taskName : artifact.getTasks()) {
+                    includedBuildTaskGraph.addTask(requestingBuild, targetBuild, taskName);
+                }
+            }
+        }
+
+        // Actually build the artifacts
+        for (CompositeProjectComponentArtifactMetadata artifact : includedBuildArtifacts) {
             BuildIdentifier targetBuild = getBuildIdentifier(artifact);
             for (String taskName : artifact.getTasks()) {
                 includedBuildTaskGraph.awaitCompletion(targetBuild, taskName);
             }
         }
+        return artifacts.getArtifactFiles();
     }
 
-    @Override
-    public FileCollection buildAll(BuildIdentifier currentBuild, ResolvableDependencies dependencies) {
-        ArtifactCollection artifacts = dependencies.getArtifacts();
-        for (ResolvedArtifactResult artifactResult : artifacts.getArtifacts()) {
-            ComponentArtifactIdentifier componentArtifactIdentifier = artifactResult.getId();
-            add(currentBuild, componentArtifactIdentifier);
-        }
-        buildAll();
-        return artifacts.getArtifactFiles();
+    private Multimap<BuildIdentifier, BuildIdentifier> getBuildGraph(ResolvableDependencies dependencies) {
+        final Multimap<BuildIdentifier, BuildIdentifier> requestingBuilds = LinkedHashMultimap.create();
+        ResolutionResult resolutionResult = dependencies.getResolutionResult();
+        resolutionResult.allDependencies(new Action<DependencyResult>() {
+            @Override
+            public void execute(DependencyResult dependencyResult) {
+                if (dependencyResult instanceof ResolvedDependencyResult) {
+                    ResolvedDependencyResult rdr = (ResolvedDependencyResult) dependencyResult;
+                    ComponentIdentifier from = rdr.getFrom().getId();
+                    ComponentIdentifier to = rdr.getSelected().getId();
+                    if (from instanceof ProjectComponentIdentifier && to instanceof ProjectComponentIdentifier) {
+                        requestingBuilds.put(((ProjectComponentIdentifier) to).getBuild(), ((ProjectComponentIdentifier) from).getBuild());
+                    }
+                }
+            }
+        });
+        return requestingBuilds;
     }
 
     private BuildIdentifier getBuildIdentifier(CompositeProjectComponentArtifactMetadata artifact) {

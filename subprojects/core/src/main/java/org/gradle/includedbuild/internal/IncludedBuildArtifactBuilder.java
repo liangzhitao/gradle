@@ -17,13 +17,8 @@ package org.gradle.includedbuild.internal;
 
 import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.file.FileCollection;
 
 public interface IncludedBuildArtifactBuilder {
-    void add(BuildIdentifier requestingBuild, ComponentArtifactIdentifier artifact);
-
-    void buildAll();
-
     FileCollection buildAll(BuildIdentifier currentBuild, ResolvableDependencies dependencies);
 }
