@@ -18,7 +18,6 @@ package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.util.Matchers
-import spock.lang.Ignore
 
 /**
  * Tests for plugin development scenarios within a composite build.
@@ -161,8 +160,6 @@ publishing {
         executer.inDirectory(pluginBuild).withArguments('--include-build', pluginDependencyA.absolutePath).withTasks('publish').run()
     }
 
-// TODO:DAZ Fix this: https://builds.gradle.org/viewLog.html?buildId=4295932&buildTypeId=Gradle_Check_NoDaemon_Java8_Oracle_Linux_compositeBuilds
-    @Ignore("Cycle check is not parallel safe: test may hang or produce StackOverflowError")
     def "detects dependency cycle between included builds required for buildscript classpath"() {
         given:
         def pluginDependencyB = singleProjectBuild("pluginDependencyB") {
@@ -187,7 +184,7 @@ publishing {
 
         then:
         failure
-            .assertHasDescription("Could not determine the dependencies of task")
+            .assertHasDescription("A problem occurred configuring root project 'buildA'.")
             .assertHasCause("Included build dependency cycle:")
             .assertThatCause(Matchers.containsText("build 'pluginDependencyA' -> build 'pluginDependencyB'"))
             .assertThatCause(Matchers.containsText("build 'pluginDependencyB' -> build 'pluginDependencyA'"))
