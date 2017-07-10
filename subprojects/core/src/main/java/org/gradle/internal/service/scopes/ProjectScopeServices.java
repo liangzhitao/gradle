@@ -57,7 +57,7 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
-import org.gradle.includedbuild.internal.IncludedBuildTaskGraph;
+import org.gradle.includedbuild.internal.IncludedBuildArtifactBuilder;
 import org.gradle.initialization.BuildIdentity;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Factory;
@@ -205,7 +205,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
             get(DependencyManagementServices.class),
             get(FileResolver.class),
             get(DependencyMetaDataProvider.class),
-            get(IncludedBuildTaskGraph.class),
+            get(IncludedBuildArtifactBuilder.class),
             get(BuildIdentity.class));
         return factory.create(project.getBuildScriptSource(), project.getClassLoaderScope(), project);
     }

@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.includedbuild.internal;
 
+import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.file.FileCollection;
 
-public interface IncludedBuildTaskGraph {
-    void addTask(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, String taskPath);
+public interface IncludedBuildArtifactBuilder {
+    void add(BuildIdentifier requestingBuild, ComponentArtifactIdentifier artifact);
 
-    void awaitCompletion(BuildIdentifier targetBuild, String taskPath);
+    void buildAll();
 
-    boolean isComplete(BuildIdentifier targetBuild, String taskPath);
+    FileCollection buildAll(BuildIdentifier currentBuild, ResolvableDependencies dependencies);
 }

@@ -16,21 +16,17 @@
 package org.gradle.api.internal.initialization;
 
 import groovy.lang.Closure;
-import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.includedbuild.internal.IncludedBuildTaskGraph;
+import org.gradle.includedbuild.internal.IncludedBuildArtifactBuilder;
 import org.gradle.initialization.BuildIdentity;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -47,7 +43,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
 
     private final ResourceLocation scriptResource;
     private final ClassLoaderScope classLoaderScope;
-    private final IncludedBuildTaskGraph includedBuildTaskGraph;
+    private final IncludedBuildArtifactBuilder includedBuildArtifactBuilder;
     private final BuildIdentity buildIdentity;
     private final DependencyResolutionServices dependencyResolutionServices;
     // The following values are relatively expensive to create, so defer creation until required
@@ -58,11 +54,11 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     private DynamicObject dynamicObject;
 
     public DefaultScriptHandler(ScriptSource scriptSource, DependencyResolutionServices dependencyResolutionServices, ClassLoaderScope classLoaderScope,
-                                IncludedBuildTaskGraph includedBuildTaskGraph, BuildIdentity buildIdentity) {
+                                IncludedBuildArtifactBuilder includedBuildArtifactBuilder, BuildIdentity buildIdentity) {
         this.dependencyResolutionServices = dependencyResolutionServices;
         this.scriptResource = scriptSource.getResource().getLocation();
         this.classLoaderScope = classLoaderScope;
-        this.includedBuildTaskGraph = includedBuildTaskGraph;
+        this.includedBuildArtifactBuilder = includedBuildArtifactBuilder;
         this.buildIdentity = buildIdentity;
     }
 
@@ -81,13 +77,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         if (classpathConfiguration == null) {
             return ClassPath.EMPTY;
         }
-        BuildIdentifier currentBuild = buildIdentity.getCurrentBuild();
-        ArtifactCollection artifacts = classpathConfiguration.getIncoming().getArtifacts();
-        for (ResolvedArtifactResult artifactResult : artifacts.getArtifacts()) {
-            ComponentArtifactIdentifier componentArtifactIdentifier = artifactResult.getId();
-            includedBuildTaskGraph.build(currentBuild, componentArtifactIdentifier);
-        }
-        return new DefaultClassPath(artifacts.getArtifactFiles());
+        return new DefaultClassPath(includedBuildArtifactBuilder.buildAll(buildIdentity.getCurrentBuild(), classpathConfiguration.getIncoming()));
     }
 
     @Override

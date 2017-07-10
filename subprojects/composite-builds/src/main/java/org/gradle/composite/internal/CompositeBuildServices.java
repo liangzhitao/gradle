@@ -20,6 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.tasks.TaskReferenceResolver;
+import org.gradle.includedbuild.internal.IncludedBuildArtifactBuilder;
 import org.gradle.initialization.BuildIdentity;
 import org.gradle.includedbuild.internal.IncludedBuildControllers;
 import org.gradle.includedbuild.internal.IncludedBuildFactory;
@@ -70,6 +71,10 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
 
         public IncludedBuildTaskGraph createIncludedBuildTaskGraph(IncludedBuildControllers controllers) {
             return new DefaultIncludedBuildTaskGraph(controllers);
+        }
+
+        public IncludedBuildArtifactBuilder createIncludedBuildArtifactBuilder(IncludedBuildTaskGraph includedBuildTaskGraph) {
+            return new DefaultIncludedBuildArtifactBuilder(includedBuildTaskGraph);
         }
     }
 

@@ -19,7 +19,6 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.includedbuild.internal.IncludedBuildController;
 import org.gradle.includedbuild.internal.IncludedBuildControllers;
@@ -29,7 +28,6 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.util.Path;
 
 import java.util.List;
-import java.util.Set;
 
 public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
     private final Multimap<BuildIdentifier, BuildIdentifier> buildDependencies = LinkedHashMultimap.create();
@@ -48,6 +46,15 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
         }
 
         getBuildController(targetBuild).queueForExecution(taskPath);
+    }
+
+    @Override
+    public void awaitCompletion(BuildIdentifier targetBuild, String taskPath) {
+        // Start task execution if necessary: this is required for building plugin artifacts,
+        // since these are built on-demand prior to the regular start signal for included builds.
+        includedBuilds.startTaskExecution(false);
+
+        getBuildController(targetBuild).awaitCompletion(taskPath);
     }
 
     public boolean isComplete(BuildIdentifier targetBuild, String taskPath) {
@@ -84,29 +91,4 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
         cycleReport.append(cycle.get(0));
         return cycleReport.toString();
     }
-
-
-    @Override
-    public void build(BuildIdentifier requestingBuild, ComponentArtifactIdentifier artifact) {
-        if (artifact instanceof CompositeProjectComponentArtifactMetadata) {
-            CompositeProjectComponentArtifactMetadata compositeBuildArtifact = (CompositeProjectComponentArtifactMetadata) artifact;
-            BuildIdentifier targetBuild = getBuildIdentifier(compositeBuildArtifact);
-            Set<String> tasks = compositeBuildArtifact.getTasks();
-            for (String taskName : tasks) {
-                addTask(requestingBuild, targetBuild, taskName);
-            }
-            // Start task execution if necessary: this is required for building plugin artifacts,
-            // since these are built on-demand prior to the regular start signal for included builds.
-            includedBuilds.startTaskExecution(false);
-            for (String taskName : tasks) {
-                getBuildController(targetBuild).awaitCompletion(taskName);
-            }
-        }
-    }
-
-    private BuildIdentifier getBuildIdentifier(CompositeProjectComponentArtifactMetadata artifact) {
-        return artifact.getComponentId().getBuild();
-    }
-
-
 }
