@@ -32,21 +32,24 @@ import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.file.FileCollection;
 import org.gradle.includedbuild.internal.IncludedBuildArtifactBuilder;
 import org.gradle.includedbuild.internal.IncludedBuildTaskGraph;
+import org.gradle.initialization.BuildIdentity;
+import org.gradle.internal.service.ServiceRegistry;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 public class DefaultIncludedBuildArtifactBuilder implements IncludedBuildArtifactBuilder {
-    private final List<CompositeProjectComponentArtifactMetadata> artifacts = Lists.newArrayList();
     private final IncludedBuildTaskGraph includedBuildTaskGraph;
+    private final ServiceRegistry serviceRegistry;
 
-    public DefaultIncludedBuildArtifactBuilder(IncludedBuildTaskGraph includedBuildTaskGraph) {
+    public DefaultIncludedBuildArtifactBuilder(IncludedBuildTaskGraph includedBuildTaskGraph, ServiceRegistry serviceRegistry) {
         this.includedBuildTaskGraph = includedBuildTaskGraph;
+        this.serviceRegistry = serviceRegistry;
     }
 
     @Override
-    public FileCollection buildAll(BuildIdentifier currentBuild, final ResolvableDependencies dependencies) {
+    public FileCollection buildAll(final ResolvableDependencies dependencies) {
         // Collect the included build artifacts
         final List<CompositeProjectComponentArtifactMetadata> includedBuildArtifacts = Lists.newArrayList();
         ArtifactCollection artifacts = dependencies.getArtifacts();
@@ -68,7 +71,7 @@ public class DefaultIncludedBuildArtifactBuilder implements IncludedBuildArtifac
             BuildIdentifier targetBuild = getBuildIdentifier(artifact);
             Collection<BuildIdentifier> buildIdentifiers = requestingBuilds.get(targetBuild);
             if (buildIdentifiers.isEmpty()) {
-                buildIdentifiers = Collections.singleton(currentBuild);
+                buildIdentifiers = Collections.singleton(serviceRegistry.get(BuildIdentity.class).getCurrentBuild());
             }
             for (BuildIdentifier requestingBuild : buildIdentifiers) {
                 for (String taskName : artifact.getTasks()) {

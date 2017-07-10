@@ -25,26 +25,22 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.includedbuild.internal.IncludedBuildArtifactBuilder;
-import org.gradle.initialization.BuildIdentity;
 
 public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
     private final DependencyManagementServices dependencyManagementServices;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
     private final IncludedBuildArtifactBuilder includedBuildArtifactBuilder;
-    private final BuildIdentity buildIdentity;
     private final FileResolver fileResolver;
     private final ProjectFinder projectFinder = new UnknownProjectFinder("Cannot use project dependencies in a script classpath definition.");
 
     public DefaultScriptHandlerFactory(DependencyManagementServices dependencyManagementServices,
                                        FileResolver fileResolver,
                                        DependencyMetaDataProvider dependencyMetaDataProvider,
-                                       IncludedBuildArtifactBuilder includedBuildArtifactBuilder,
-                                       BuildIdentity buildIdentity) {
+                                       IncludedBuildArtifactBuilder includedBuildArtifactBuilder) {
         this.dependencyManagementServices = dependencyManagementServices;
         this.fileResolver = fileResolver;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
         this.includedBuildArtifactBuilder = includedBuildArtifactBuilder;
-        this.buildIdentity = buildIdentity;
     }
 
     public ScriptHandlerInternal create(ScriptSource scriptSource, ClassLoaderScope classLoaderScope) {
@@ -53,7 +49,7 @@ public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
 
     public ScriptHandlerInternal create(ScriptSource scriptSource, ClassLoaderScope classLoaderScope, DomainObjectContext context) {
         DependencyResolutionServices services = dependencyManagementServices.create(fileResolver, dependencyMetaDataProvider, projectFinder, context);
-        return new DefaultScriptHandler(scriptSource, services, classLoaderScope, includedBuildArtifactBuilder, buildIdentity);
+        return new DefaultScriptHandler(scriptSource, services, classLoaderScope, includedBuildArtifactBuilder);
     }
 
 }

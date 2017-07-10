@@ -95,7 +95,6 @@ import org.gradle.groovy.scripts.internal.FileCacheBackedScriptClassCompiler;
 import org.gradle.includedbuild.internal.IncludedBuildArtifactBuilder;
 import org.gradle.includedbuild.internal.IncludedBuildFactory;
 import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.initialization.BuildIdentity;
 import org.gradle.initialization.BuildLoader;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.ClassLoaderRegistry;
@@ -354,8 +353,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(DependencyManagementServices.class),
             get(FileResolver.class),
             get(DependencyMetaDataProvider.class),
-            get(IncludedBuildArtifactBuilder.class),
-            get(BuildIdentity.class)
+            get(IncludedBuildArtifactBuilder.class)
         );
     }
 

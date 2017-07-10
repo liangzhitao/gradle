@@ -27,7 +27,6 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.includedbuild.internal.IncludedBuildArtifactBuilder;
-import org.gradle.initialization.BuildIdentity;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.metaobject.BeanDynamicObject;
@@ -44,7 +43,6 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     private final ResourceLocation scriptResource;
     private final ClassLoaderScope classLoaderScope;
     private final IncludedBuildArtifactBuilder includedBuildArtifactBuilder;
-    private final BuildIdentity buildIdentity;
     private final DependencyResolutionServices dependencyResolutionServices;
     // The following values are relatively expensive to create, so defer creation until required
     private RepositoryHandler repositoryHandler;
@@ -54,12 +52,11 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     private DynamicObject dynamicObject;
 
     public DefaultScriptHandler(ScriptSource scriptSource, DependencyResolutionServices dependencyResolutionServices, ClassLoaderScope classLoaderScope,
-                                IncludedBuildArtifactBuilder includedBuildArtifactBuilder, BuildIdentity buildIdentity) {
+                                IncludedBuildArtifactBuilder includedBuildArtifactBuilder) {
         this.dependencyResolutionServices = dependencyResolutionServices;
         this.scriptResource = scriptSource.getResource().getLocation();
         this.classLoaderScope = classLoaderScope;
         this.includedBuildArtifactBuilder = includedBuildArtifactBuilder;
-        this.buildIdentity = buildIdentity;
     }
 
     @Override
@@ -77,7 +74,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         if (classpathConfiguration == null) {
             return ClassPath.EMPTY;
         }
-        return new DefaultClassPath(includedBuildArtifactBuilder.buildAll(buildIdentity.getCurrentBuild(), classpathConfiguration.getIncoming()));
+        return new DefaultClassPath(includedBuildArtifactBuilder.buildAll(classpathConfiguration.getIncoming()));
     }
 
     @Override
