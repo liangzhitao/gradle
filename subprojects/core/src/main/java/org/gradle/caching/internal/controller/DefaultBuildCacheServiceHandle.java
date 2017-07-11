@@ -77,7 +77,7 @@ class DefaultBuildCacheServiceHandle implements BuildCacheServiceHandle {
     }
 
     @Override
-    public <T> T doLoad(final BuildCacheLoadCommand<T> command) {
+    public <T> T doLoad(final BuildCacheLoadCommand<T> command) throws BuildCacheCommandExecutionException {
         final String description = "Load entry " + command.getKey() + " from " + role.getDisplayName() + " build cache";
         return buildOperationExecutor.call(new CallableBuildOperation<T>() {
             @Override
@@ -101,12 +101,10 @@ class DefaultBuildCacheServiceHandle implements BuildCacheServiceHandle {
                         return metadata;
                     }
                 } catch (Exception e) {
-                    // Use the raw exception as the failure, not the wrapped
                     context.failed(e);
-
                     reportFailure("load", "from", command.getKey(), e);
-                    recordFailure();
-                    return null;
+                    recordFailure(e);
+                    throw new BuildCacheCommandExecutionException("Could not load cache entry " + command.getKey(), e);
                 }
             }
 
@@ -166,13 +164,8 @@ class DefaultBuildCacheServiceHandle implements BuildCacheServiceHandle {
                     context.setResult(result);
                 } catch (Exception e) {
                     context.failed(e);
-
                     reportFailure("store", "in", key, e);
-                    if (e instanceof BuildCacheException) {
-                        recordFailure();
-                    } else {
-                        disable("a non-recoverable error was encountered", true);
-                    }
+                    recordFailure(e);
                 }
             }
 
@@ -188,9 +181,13 @@ class DefaultBuildCacheServiceHandle implements BuildCacheServiceHandle {
         return new IllegalStateException("Store operation of " + role.getDisplayName() + " build cache completed without storing the artifact");
     }
 
-    private void recordFailure() {
-        if (errorCount.incrementAndGet() == DefaultBuildCacheController.MAX_ERRORS) {
-            disable(DefaultBuildCacheController.MAX_ERRORS + " recoverable errors were encountered", false);
+    private void recordFailure(Throwable e) {
+        if (e instanceof BuildCacheException) {
+            if (errorCount.incrementAndGet() == DefaultBuildCacheController.MAX_ERRORS) {
+                disable(DefaultBuildCacheController.MAX_ERRORS + " recoverable errors were encountered", false);
+            }
+        } else {
+            disable("a non-recoverable error was encountered", true);
         }
     }
 

@@ -16,7 +16,6 @@
 
 package org.gradle.caching.internal.controller
 
-import org.gradle.api.GradleException
 import org.gradle.api.internal.file.DefaultTemporaryFileProvider
 import org.gradle.caching.BuildCacheEntryWriter
 import org.gradle.caching.BuildCacheException
@@ -68,7 +67,7 @@ class DefaultBuildCacheControllerTest extends Specification {
         controller.load(loadCommand)
 
         then:
-        def exception = thrown(GradleException)
+        def exception = thrown Exception
         exception.message.contains key.toString()
     }
 
@@ -86,15 +85,26 @@ class DefaultBuildCacheControllerTest extends Specification {
 
     def "stops calling through after defined number of read errors"() {
         when:
-        (MAX_ERRORS + 1).times {
-            controller.load(loadCommand)
+        MAX_ERRORS.times {
+            try {
+                controller.load(loadCommand)
+                assert false
+            } catch (BuildCacheCommandExecutionException e) {
+                // ignore
+            }
         }
-        controller.store(storeCommand)
-
         then:
         MAX_ERRORS * local.load(key, _) >> { throw new BuildCacheException("Error") }
         MAX_ERRORS * remote.load(key, _)
+
+        when:
+        controller.load(loadCommand)
+        then:
         1 * remote.load(key, _)
+
+        when:
+        controller.store(storeCommand)
+        then:
         0 * local.store(_, _)
         1 * remote.store(_, _)
     }

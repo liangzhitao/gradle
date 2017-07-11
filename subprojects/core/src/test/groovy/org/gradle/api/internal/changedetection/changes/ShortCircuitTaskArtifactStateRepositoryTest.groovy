@@ -90,7 +90,7 @@ class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
         !messages.empty
 
         and:
-        !state.inputChanges.incremental
+        !state.getInputChanges(false).incremental
     }
 
     def taskArtifactsAreAlwaysOutOfDateWhenUpToDateSpecReturnsFalse() {
@@ -113,7 +113,7 @@ class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
         !messages.empty
 
         and:
-        !state.inputChanges.incremental
+        !state.getInputChanges(false).incremental
     }
 
     def "origin build ID is null task has no output"() {

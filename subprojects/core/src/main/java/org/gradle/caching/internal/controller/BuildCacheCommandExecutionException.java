@@ -16,24 +16,10 @@
 
 package org.gradle.caching.internal.controller;
 
-import org.gradle.api.Nullable;
-import org.gradle.caching.BuildCacheService;
+import org.gradle.api.GradleException;
 
-import java.io.Closeable;
-
-/**
- * Internal coordinator of build cache operations.
- *
- * Wraps user {@link BuildCacheService} implementations.
- */
-public interface BuildCacheController extends Closeable {
-
-    @Nullable
-    <T> T load(BuildCacheLoadCommand<T> command) throws BuildCacheCommandExecutionException;
-
-    void store(BuildCacheStoreCommand command);
-
-    @Override
-    void close();
-
+public class BuildCacheCommandExecutionException extends GradleException {
+    public BuildCacheCommandExecutionException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

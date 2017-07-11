@@ -22,7 +22,6 @@ import com.google.common.cache.LoadingCache;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
-import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.tasks.ClassLoaderAwareTaskAction;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
@@ -154,23 +153,24 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
 
     private static class IncrementalTaskAction extends StandardTaskAction implements ContextAwareTaskAction {
 
-        private TaskArtifactState taskArtifactState;
+        private TaskExecutionContext context;
 
         public IncrementalTaskAction(Class<? extends Task> type, Method method) {
             super(type, method);
         }
 
         public void contextualise(TaskExecutionContext context) {
-            this.taskArtifactState = context.getTaskArtifactState();
+            this.context = context;
         }
 
         @Override
         public void releaseContext() {
-            this.taskArtifactState = null;
+            this.context = null;
         }
 
         protected void doExecute(Task task, String methodName) {
-            JavaReflectionUtil.method(task, Object.class, methodName, IncrementalTaskInputs.class).invoke(task, taskArtifactState.getInputChanges());
+            IncrementalTaskInputs inputs = context.getTaskArtifactState().getInputChanges(context.isForceRebuild());
+            JavaReflectionUtil.method(task, Object.class, methodName, IncrementalTaskInputs.class).invoke(task, inputs);
         }
     }
 }

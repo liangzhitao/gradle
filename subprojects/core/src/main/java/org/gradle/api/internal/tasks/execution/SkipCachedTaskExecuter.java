@@ -25,6 +25,7 @@ import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.caching.internal.controller.BuildCacheCommandExecutionException;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.tasks.TaskOutputCacheCommandFactory;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
@@ -77,13 +78,18 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                 // property values are locked in at this point.
                 outputProperties = TaskPropertyUtils.resolveFileProperties(taskOutputs.getFileProperties());
                 if (taskState.isAllowedToUseCachedResults()) {
-                    TaskOutputOriginMetadata originMetadata = buildCache.load(
-                        buildCacheCommandFactory.createLoad(cacheKey, outputProperties, task, taskOutputsGenerationListener, clock)
-                    );
-                    if (originMetadata != null) {
-                        state.setOutcome(TaskExecutionOutcome.FROM_CACHE);
-                        context.setOriginBuildInvocationId(originMetadata.getBuildInvocationId());
-                        return;
+                    try {
+                        TaskOutputOriginMetadata originMetadata = buildCache.load(
+                            buildCacheCommandFactory.createLoad(cacheKey, outputProperties, task, taskOutputsGenerationListener, clock)
+                        );
+                        if (originMetadata != null) {
+                            state.setOutcome(TaskExecutionOutcome.FROM_CACHE);
+                            context.setOriginBuildInvocationId(originMetadata.getBuildInvocationId());
+                            return;
+                        }
+                    } catch (BuildCacheCommandExecutionException e) {
+                        context.setForceRebuild(true);
+                        LOGGER.warn("Failed to load cache entry for task {}", task, e);
                     }
                 } else {
                     LOGGER.info("Not loading {} from cache because pulling from cache is disabled for this task", task);

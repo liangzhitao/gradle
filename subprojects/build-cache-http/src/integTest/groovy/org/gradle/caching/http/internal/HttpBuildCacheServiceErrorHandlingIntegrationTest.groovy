@@ -63,10 +63,14 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends AbstractIntegrat
         httpBuildCacheServer.truncateContentAfterPutBytes(1024)
         startServer()
 
+        file("src/input.txt").text = "original"
         withBuildCache().succeeds "incrementalTask"
-        file("src/input.txt") << " changed"
+
+        file("src/input.txt").text = "changed"
+        withBuildCache().succeeds "incrementalTask", "-PexpectIncremental=true"
 
         when:
+        file("src/input.txt").text = "original"
         executer.withStackTraceChecksDisabled()
         withBuildCache().succeeds "incrementalTask", "-PexpectIncremental=false"
 
@@ -108,7 +112,6 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends AbstractIntegrat
     }
 
     def withIncrementalCacheableTask() {
-        file("src/input.txt").text = "Input"
         buildFile << """
             @CacheableTask
             class IncrementalTask extends DefaultTask {

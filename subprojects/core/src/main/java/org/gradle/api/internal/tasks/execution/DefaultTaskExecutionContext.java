@@ -29,6 +29,7 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     private TaskOutputCachingBuildCacheKey buildCacheKey;
     private UniqueId originBuildInvocationId;
     private List<String> upToDateMessages;
+    private boolean forceRebuild;
 
     @Override
     public TaskArtifactState getTaskArtifactState() {
@@ -71,4 +72,13 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
         this.upToDateMessages = upToDateMessages;
     }
 
+    @Override
+    public boolean isForceRebuild() {
+        return forceRebuild;
+    }
+
+    @Override
+    public void setForceRebuild(boolean forceRebuild) {
+        this.forceRebuild = forceRebuild;
+    }
 }

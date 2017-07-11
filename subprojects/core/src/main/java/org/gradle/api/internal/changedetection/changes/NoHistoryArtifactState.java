@@ -35,7 +35,7 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
     }
 
     @Override
-    public IncrementalTaskInputs getInputChanges() {
+    public IncrementalTaskInputs getInputChanges(boolean forceRebuild) {
         throw new UnsupportedOperationException();
     }
 

@@ -34,7 +34,7 @@ public interface TaskArtifactState {
      */
     boolean isUpToDate(Collection<String> messages);
 
-    IncrementalTaskInputs getInputChanges();
+    IncrementalTaskInputs getInputChanges(boolean forceRebuild);
 
     /**
      * Returns whether it is okay to use results loaded from cache instead of executing the task.

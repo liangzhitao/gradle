@@ -600,14 +600,14 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
     private void outOfDate(TaskInternal task) {
         final state = repository.getStateFor(task)
         assert !state.isUpToDate([])
-        assert !state.inputChanges.incremental
+        assert !state.getInputChanges(false).incremental
     }
 
     def inputsOutOfDate(TaskInternal task) {
         final state = repository.getStateFor(task)
         assert !state.isUpToDate([])
 
-        final inputChanges = state.inputChanges
+        final inputChanges = state.getInputChanges(false)
         assert inputChanges.incremental
 
         final changedFiles = new ChangedFiles()

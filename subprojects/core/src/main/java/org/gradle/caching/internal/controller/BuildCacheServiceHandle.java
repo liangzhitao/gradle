@@ -32,7 +32,7 @@ public interface BuildCacheServiceHandle extends Closeable {
 
     boolean canLoad();
 
-    <T> T doLoad(BuildCacheLoadCommand<T> command);
+    <T> T doLoad(BuildCacheLoadCommand<T> command) throws BuildCacheCommandExecutionException;
 
     boolean canStore();
 

@@ -42,4 +42,14 @@ public interface TaskExecutionContext {
     List<String> getUpToDateMessages();
 
     void setUpToDateMessages(List<String> upToDateMessages);
+
+    /**
+     * Force the task to be rebuilt even if it could be executed as incremental otherwise.
+     */
+    boolean isForceRebuild();
+
+    /**
+     * Force the task to be rebuilt even if it could be executed as incremental otherwise.
+     */
+    void setForceRebuild(boolean rebuild);
 }
