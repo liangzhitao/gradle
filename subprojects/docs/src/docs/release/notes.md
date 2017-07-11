@@ -10,6 +10,11 @@ Add-->
 ### Example new and noteworthy
 -->
 
+### Logs grouped by project and task in non-interactive environments
+
+Log messages that can be associated with a project configuration or task will be buffered and grouped under a "header" as is done in Gradle 4.0
+with interactive terminals. Unlike interactive environments, _all_ tasks and their outcomes are printed.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
