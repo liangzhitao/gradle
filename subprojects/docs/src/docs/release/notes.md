@@ -34,6 +34,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example deprecation
 -->
 
+### Using JSR-305 nullable annotation
+
+The `org.gradle.api.Nullable` annotation has been deprecated, and replaced with `javax.annotation.Nullable`.
+
 ## Potential breaking changes
 
 <!--
