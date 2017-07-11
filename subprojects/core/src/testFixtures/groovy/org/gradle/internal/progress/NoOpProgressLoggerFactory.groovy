@@ -16,6 +16,7 @@
 
 package org.gradle.internal.progress
 
+import org.gradle.internal.logging.events.BuildHealth
 import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 
@@ -72,6 +73,7 @@ class NoOpProgressLoggerFactory implements ProgressLoggerFactory {
         void started() {}
         void started(String status) {}
         void progress(String status) {}
+        void progress(String status, String progressIndicator, BuildHealth buildHealth) { }
         void completed() {}
         void completed(String status) {}
     }

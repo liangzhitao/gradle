@@ -41,4 +41,9 @@ public class PercentageProgressFormatter implements ProgressFormatter {
     public String getProgress() {
         return prefix + " " + (int) (current * 100.0 / total) + "%";
     }
+
+    @Override
+    public String getProgressIndicator() {
+        return null;
+    }
 }

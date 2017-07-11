@@ -36,6 +36,7 @@ public class ProgressBar implements ProgressFormatter {
         this.suffix = suffix;
     }
 
+    @Override
     public String incrementAndGetProgress() {
         increment();
         return getProgress();
@@ -48,13 +49,17 @@ public class ProgressBar implements ProgressFormatter {
         current++;
     }
 
+    @Override
     public String getProgress() {
+        return "" + (int) (current * 100.0 / total) + '%' + ' ' + suffix;
+    }
+
+    @Override
+    public String getProgressIndicator() {
         int completedWidth = (int) ((current * 1.0) / total * progressBarWidth);
         int remainingWidth = progressBarWidth - completedWidth;
-
-        // TODO(ew): Break out suffix format as a separate thing
         return progressBarPrefix + new String(new char[completedWidth]).replace('\0', fillerChar)
             + new String(new char[remainingWidth]).replace('\0', incompleteChar)
-            + progressBarSuffix + " " + (int) (current * 100.0 / total) + '%' + ' ' + suffix;
+            + progressBarSuffix + " ";
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.internal.logging.progress;
 
 import org.gradle.api.Nullable;
+import org.gradle.internal.logging.events.BuildHealth;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
@@ -143,12 +144,16 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
                 parent.assertRunning();
             }
             current.set(this);
-            listener.started(new ProgressStartEvent(progressOperationId, parent == null ? null : parent.progressOperationId, timeProvider.getCurrentTime(), category, description, shortDescription, loggingHeader, toStatus(status), getBuildOperationId(), getParentBuildOperationId(), getBuildOperationCategory()));
+            listener.started(new ProgressStartEvent(progressOperationId, parent == null ? null : parent.progressOperationId, timeProvider.getCurrentTime(), category, description, shortDescription, loggingHeader, ensureNotNull(status), getBuildOperationId(), getParentBuildOperationId(), getBuildOperationCategory()));
         }
 
         public void progress(String status) {
+            progress(status, "", BuildHealth.UNCHANGED);
+        }
+
+        public void progress(String status, String progressIndicator, BuildHealth buildHealth) {
             assertRunning();
-            listener.progress(new ProgressEvent(progressOperationId, toStatus(status)));
+            listener.progress(new ProgressEvent(progressOperationId, ensureNotNull(status), ensureNotNull(progressIndicator), buildHealth));
         }
 
         public void completed() {
@@ -159,10 +164,10 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
             assertRunning();
             state = State.completed;
             current.set(parent);
-            listener.completed(new ProgressCompleteEvent(progressOperationId, timeProvider.getCurrentTime(), toStatus(status)));
+            listener.completed(new ProgressCompleteEvent(progressOperationId, timeProvider.getCurrentTime(), ensureNotNull(status)));
         }
 
-        private String toStatus(String status) {
+        private String ensureNotNull(String status) {
             return status == null ? "" : status;
         }
 

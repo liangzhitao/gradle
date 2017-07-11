@@ -20,15 +20,27 @@ import org.gradle.api.logging.LogLevel;
 
 public class ProgressEvent extends OutputEvent {
     private final String status;
+    private final String progressIndicator;
+    private final BuildHealth buildHealth;
     private final OperationIdentifier progressOperationId;
 
-    public ProgressEvent(OperationIdentifier progressOperationId, String status) {
+    public ProgressEvent(OperationIdentifier progressOperationId, String status, String progressIndicator, BuildHealth buildHealth) {
         this.progressOperationId = progressOperationId;
         this.status = status;
+        this.progressIndicator = progressIndicator;
+        this.buildHealth = buildHealth;
     }
 
     public String getStatus() {
         return status;
+    }
+
+    public String getProgressIndicator() {
+        return progressIndicator;
+    }
+
+    public BuildHealth getBuildHealth() {
+        return buildHealth;
     }
 
     @Override

@@ -36,4 +36,9 @@ class SimpleProgressFormatter implements ProgressFormatter {
     public String getProgress() {
         return current + "/" + total + " " + postfix;
     }
+
+    @Override
+    public String getProgressIndicator() {
+        return null;
+    }
 }

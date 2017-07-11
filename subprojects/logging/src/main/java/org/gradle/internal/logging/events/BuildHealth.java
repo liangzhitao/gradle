@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.progress;
 
-import org.gradle.api.Nullable;
+package org.gradle.internal.logging.events;
 
-interface ProgressFormatter {
-    String incrementAndGetProgress();
-    String getProgress();
-    @Nullable String getProgressIndicator();
+/**
+ * Indicates the current health of a running build as it progresses.
+ */
+public enum BuildHealth {
+    UNCHANGED,
+    FAILING
 }

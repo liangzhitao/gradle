@@ -16,7 +16,9 @@
 
 package org.gradle.internal.logging.console;
 
+import com.google.common.collect.Lists;
 import org.gradle.internal.logging.events.BatchOutputEventListener;
+import org.gradle.internal.logging.events.BuildHealth;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
@@ -27,8 +29,6 @@ import org.gradle.internal.logging.text.Span;
 import org.gradle.internal.logging.text.Style;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.time.TimeProvider;
-
-import java.util.Collections;
 
 public class BuildStatusRenderer extends BatchOutputEventListener {
     public static final String BUILD_PROGRESS_CATEGORY = "org.gradle.internal.progress.BuildProgressLogger";
@@ -41,6 +41,8 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
 
     // What actually shows up on the console
     private String currentBuildStatus;
+    private String currentProgressIndicator = "";
+    private Style.Color currentBuildStatusColor = Style.Color.GREEN;
     private long currentPhaseProgressOperationId;
 
     // Used to maintain timer
@@ -84,23 +86,34 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
         renderNow(timeProvider.getCurrentTime());
     }
 
-    private String trimToConsole(String str) {
-        int width = consoleMetaData.getCols() - 1;
-        if (width > 0 && width < str.length()) {
-            return str.substring(0, width);
+    private String trimToConsole(int prefixLength, String str) {
+        int consoleWidth = consoleMetaData.getCols() - 1;
+        int remainingWidth = consoleWidth - prefixLength;
+
+        if (consoleWidth < 0) {
+            return str;
+        }
+        if (remainingWidth <= 0) {
+            return "";
+        }
+        if (consoleWidth < str.length()) {
+            return str.substring(0, consoleWidth);
         }
         return str;
     }
 
     private void renderNow(long now) {
         if (currentBuildStatus != null && !currentBuildStatus.isEmpty()) {
-            final String buildStatusToRender = trimToConsole(format(currentBuildStatus, timerEnabled, now - buildStartTimestamp));
-            buildStatusLabel.setText(Collections.singletonList(new Span(Style.of(Style.Emphasis.BOLD), buildStatusToRender)));
+            final String buildProgressToRender = trimToConsole(0, currentProgressIndicator);
+            final String buildStatusToRender = trimToConsole(buildProgressToRender.length(), formatBuildStatus(currentBuildStatus, timerEnabled, now - buildStartTimestamp));
+            buildStatusLabel.setText(Lists.newArrayList(
+                new Span(Style.of(Style.Emphasis.BOLD, currentBuildStatusColor), buildProgressToRender),
+                new Span(Style.of(Style.Emphasis.BOLD), buildStatusToRender)));
         }
         console.flush();
     }
 
-    private String format(String prefix, boolean timerEnabled, long elapsedTime) {
+    private String formatBuildStatus(String prefix, boolean timerEnabled, long elapsedTime) {
         if (timerEnabled) {
             return prefix + " [" + elapsedTimeFormatter.format(elapsedTime) + "]";
         }
@@ -123,6 +136,10 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
 
     private void phaseProgressed(ProgressEvent progressEvent) {
         currentBuildStatus = progressEvent.getStatus();
+        currentProgressIndicator = progressEvent.getProgressIndicator();
+        if (progressEvent.getBuildHealth() == BuildHealth.FAILING) {
+            currentBuildStatusColor = Style.Color.RED;
+        }
     }
 
     private void phaseEnded(ProgressCompleteEvent progressCompleteEvent) {

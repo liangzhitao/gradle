@@ -17,6 +17,7 @@
 package org.gradle.internal.progress;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.internal.logging.events.BuildHealth;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 
@@ -50,7 +51,7 @@ public class BuildProgressLogger implements LoggerProvider {
 
     public void buildStarted() {
         buildProgressFormatter = newProgressBar(INITIALIZATION_PHASE_SHORT_DESCRIPTION, 1);
-        buildProgress = loggerProvider.start(INITIALIZATION_PHASE_DESCRIPTION, buildProgressFormatter.getProgress());
+        buildProgress = loggerProvider.start(INITIALIZATION_PHASE_DESCRIPTION, getProgressWithIndicator());
     }
 
     public void settingsEvaluated() {
@@ -59,7 +60,7 @@ public class BuildProgressLogger implements LoggerProvider {
 
     public void projectsLoaded(int totalProjects) {
         buildProgressFormatter = newProgressBar(CONFIGURATION_PHASE_SHORT_DESCRIPTION, totalProjects);
-        buildProgress = loggerProvider.start(CONFIGURATION_PHASE_DESCRIPTION, buildProgressFormatter.getProgress());
+        buildProgress = loggerProvider.start(CONFIGURATION_PHASE_DESCRIPTION, getProgressWithIndicator());
     }
 
     public void beforeEvaluate(String projectPath) {}
@@ -74,13 +75,17 @@ public class BuildProgressLogger implements LoggerProvider {
         taskGraphPopulated = true;
         buildProgress.completed();
         buildProgressFormatter = newProgressBar(EXECUTION_PHASE_SHORT_DESCRIPTION, totalTasks);
-        buildProgress = loggerProvider.start(EXECUTION_PHASE_DESCRIPTION, buildProgressFormatter.getProgress());
+        buildProgress = loggerProvider.start(EXECUTION_PHASE_DESCRIPTION, getProgressWithIndicator());
+    }
+
+    private String getProgressWithIndicator() {
+        return buildProgressFormatter.getProgressIndicator() + buildProgressFormatter.getProgress();
     }
 
     public void beforeExecute() {}
 
-    public void afterExecute() {
-        buildProgress.progress(buildProgressFormatter.incrementAndGetProgress());
+    public void afterExecute(boolean taskSuccess) {
+        buildProgress.progress(buildProgressFormatter.incrementAndGetProgress(), buildProgressFormatter.getProgressIndicator(), taskSuccess ? BuildHealth.UNCHANGED : BuildHealth.FAILING);
     }
 
     public void beforeComplete() {

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.serializer;
 
+import org.gradle.internal.logging.events.BuildHealth;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.serialize.Decoder;
@@ -27,12 +28,16 @@ public class ProgressEventSerializer implements Serializer<ProgressEvent> {
     public void write(Encoder encoder, ProgressEvent event) throws Exception {
         encoder.writeSmallLong(event.getProgressOperationId().getId());
         encoder.writeString(event.getStatus());
+        encoder.writeString(event.getProgressIndicator());
+        encoder.writeSmallInt(event.getBuildHealth().ordinal());
     }
 
     @Override
     public ProgressEvent read(Decoder decoder) throws Exception {
         OperationIdentifier id = new OperationIdentifier(decoder.readSmallLong());
         String status = decoder.readString();
-        return new ProgressEvent(id, status);
+        String progressIndicator = decoder.readString();
+        int buildHealth = decoder.readSmallInt();
+        return new ProgressEvent(id, status, progressIndicator, BuildHealth.values()[buildHealth]);
     }
 }

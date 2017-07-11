@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.logging.serializer
 
+import org.gradle.internal.logging.events.BuildHealth
 import org.gradle.internal.logging.events.OperationIdentifier
 import org.gradle.internal.logging.events.ProgressEvent
 import spock.lang.Subject
@@ -27,7 +28,7 @@ class ProgressEventSerializerTest extends LogSerializerSpec {
 
     def "can serialize ProgressEvent messages"() {
         given:
-        def event = new ProgressEvent(OPERATION_ID, "status")
+        def event = new ProgressEvent(OPERATION_ID, "status", "", BuildHealth.UNCHANGED)
 
         when:
         def result = serialize(event, serializer)
@@ -40,7 +41,7 @@ class ProgressEventSerializerTest extends LogSerializerSpec {
 
     def "can serialize ProgressEvent messages with empty fields"() {
         given:
-        def event = new ProgressEvent(OPERATION_ID, "")
+        def event = new ProgressEvent(OPERATION_ID, "", "", BuildHealth.UNCHANGED)
 
         when:
         def result = serialize(event, serializer)

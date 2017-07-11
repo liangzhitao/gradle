@@ -16,6 +16,7 @@
 package org.gradle.internal.logging
 
 import org.gradle.api.logging.LogLevel
+import org.gradle.internal.logging.events.BuildHealth
 import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.logging.events.OperationIdentifier
 import org.gradle.internal.logging.events.ProgressCompleteEvent
@@ -101,7 +102,7 @@ abstract class OutputSpecification extends Specification {
 
     ProgressEvent progress(String status) {
         long id = counter
-        return new ProgressEvent(new OperationIdentifier(id), status)
+        return new ProgressEvent(new OperationIdentifier(id), status, "", BuildHealth.UNCHANGED)
     }
 
     ProgressCompleteEvent complete(String status) {

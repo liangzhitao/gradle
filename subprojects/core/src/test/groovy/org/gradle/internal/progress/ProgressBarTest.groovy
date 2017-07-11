@@ -36,7 +36,8 @@ class ProgressBarTest extends Specification {
 
     def "formats progress bar"() {
         expect:
-        progressBar.getProgress() == "$PREFIX${(INCOMPLETE_CHAR * PROGRESS_BAR_WIDTH)}$SUFFIX 0% $BUILD_PHASE".toString()
+        progressBar.progressIndicator == "$PREFIX${(INCOMPLETE_CHAR * PROGRESS_BAR_WIDTH)}$SUFFIX "
+        progressBar.progress == "0% $BUILD_PHASE".toString()
     }
 
     def "fills completed progress"() {
@@ -44,10 +45,12 @@ class ProgressBarTest extends Specification {
         progressBar.increment()
 
         then:
-        progressBar.getProgress() == "[#         ] 10% EXECUTING"
+        progressBar.progress == "10% EXECUTING"
+        progressBar.progressIndicator == "[#         ] "
 
         and:
-        progressBar.incrementAndGetProgress() == "[##        ] 20% EXECUTING"
+        progressBar.incrementAndGetProgress() == "20% EXECUTING"
+        progressBar.progressIndicator == "[##        ] "
     }
 
     def "throws IllegalStateException if incremented past total"() {

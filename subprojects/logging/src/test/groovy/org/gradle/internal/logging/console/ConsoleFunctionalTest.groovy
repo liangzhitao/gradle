@@ -17,6 +17,7 @@
 package org.gradle.internal.logging.console
 
 import org.gradle.api.logging.LogLevel
+import org.gradle.internal.logging.events.BuildHealth
 import org.gradle.internal.logging.events.EndOutputEvent
 import org.gradle.internal.logging.events.OperationIdentifier
 import org.gradle.internal.logging.events.ProgressCompleteEvent
@@ -73,9 +74,9 @@ class ConsoleFunctionalTest extends Specification {
         }
 
         when:
-        currentTimeMs += 2000L;
+        currentTimeMs += 2000L
         renderer.onOutput(completeEvent(2, BuildStatusRenderer.BUILD_PROGRESS_CATEGORY))
-        renderer.onOutput(progressEvent(1, '<=--> 33% CONFIGURING'))
+        renderer.onOutput(progressEvent(1, '33% CONFIGURING', '<=--> '))
 
         then:
         ConcurrentTestUtil.poll(1) {
@@ -315,8 +316,8 @@ class ConsoleFunctionalTest extends Specification {
         new ProgressStartEvent(new OperationIdentifier(id), null, timeProvider.currentTime, null, null, null, null, status, null, null, BuildOperationCategory.UNCATEGORIZED)
     }
 
-    ProgressEvent progressEvent(Long id, status='STATUS') {
-        new ProgressEvent(new OperationIdentifier(id), status)
+    ProgressEvent progressEvent(Long id, status='STATUS', progressIndicator='') {
+        new ProgressEvent(new OperationIdentifier(id), status, progressIndicator, BuildHealth.UNCHANGED)
     }
 
     ProgressCompleteEvent completeEvent(Long id, status='STATUS') {
