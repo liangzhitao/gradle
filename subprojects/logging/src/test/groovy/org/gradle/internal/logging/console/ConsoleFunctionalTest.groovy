@@ -24,6 +24,7 @@ import org.gradle.internal.logging.events.ProgressCompleteEvent
 import org.gradle.internal.logging.events.ProgressEvent
 import org.gradle.internal.logging.events.ProgressStartEvent
 import org.gradle.internal.logging.sink.OutputEventRenderer
+import org.gradle.internal.logging.text.Style
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import org.gradle.internal.progress.BuildOperationCategory
 import org.gradle.internal.progress.BuildProgressLogger
@@ -39,7 +40,7 @@ class ConsoleFunctionalTest extends Specification {
     private final TimeProvider timeProvider = Mock(TimeProvider)
     private final ConsoleMetaData metaData = Mock(ConsoleMetaData)
     private OutputEventRenderer renderer
-    private long currentTimeMs;
+    private long currentTimeMs
     private static final String IDLE = '> IDLE'
 
     def setup() {
@@ -306,6 +307,46 @@ class ConsoleFunctionalTest extends Specification {
         }
     }
 
+    def "renders progress green while build is successful"() {
+        setup:
+        renderer.onOutput(startEvent(1, null, BuildStatusRenderer.BUILD_PROGRESS_CATEGORY, BuildProgressLogger.EXECUTION_PHASE_DESCRIPTION))
+
+        when:
+        renderer.onOutput(progressEvent(1, "EXECUTING", "<==--> ", BuildHealth.UNCHANGED))
+
+        then:
+        ConcurrentTestUtil.poll(1) {
+            assert statusBar.styleOf("<==--> ")?.color == Style.Color.GREEN
+        }
+    }
+
+    def "renders progress red when build becomes failing"() {
+        setup:
+        renderer.onOutput(startEvent(1, null, BuildStatusRenderer.BUILD_PROGRESS_CATEGORY, BuildProgressLogger.EXECUTION_PHASE_DESCRIPTION))
+
+        when:
+        renderer.onOutput(progressEvent(1, "EXECUTING", "<==--> ", BuildHealth.FAILING))
+
+        then:
+        ConcurrentTestUtil.poll(1) {
+            assert statusBar.styleOf("<==--> ")?.color == Style.Color.RED
+        }
+    }
+
+    def "continues to render progress red also if successive progress is not failing"() {
+        setup:
+        renderer.onOutput(startEvent(1, null, BuildStatusRenderer.BUILD_PROGRESS_CATEGORY, BuildProgressLogger.EXECUTION_PHASE_DESCRIPTION))
+
+        when:
+        renderer.onOutput(progressEvent(1, "EXECUTING", "<==--> ", BuildHealth.FAILING))
+        renderer.onOutput(progressEvent(1, "EXECUTING", "<===-> ", BuildHealth.UNCHANGED))
+
+        then:
+        ConcurrentTestUtil.poll(1) {
+            assert statusBar.styleOf("<===-> ")?.color == Style.Color.RED
+        }
+    }
+
     ProgressStartEvent startEvent(Long id, Long parentId=null, category='CATEGORY', description='DESCRIPTION', shortDescription='SHORT_DESCRIPTION', loggingHeader='LOGGING_HEADER', status='STATUS') {
         long timestamp = timeProvider.currentTime
         OperationIdentifier parent = parentId ? new OperationIdentifier(parentId) : null
@@ -316,8 +357,8 @@ class ConsoleFunctionalTest extends Specification {
         new ProgressStartEvent(new OperationIdentifier(id), null, timeProvider.currentTime, null, null, null, null, status, null, null, BuildOperationCategory.UNCATEGORIZED)
     }
 
-    ProgressEvent progressEvent(Long id, status='STATUS', progressIndicator='') {
-        new ProgressEvent(new OperationIdentifier(id), status, progressIndicator, BuildHealth.UNCHANGED)
+    ProgressEvent progressEvent(Long id, status='STATUS', progressIndicator='', buildHealth=BuildHealth.UNCHANGED) {
+        new ProgressEvent(new OperationIdentifier(id), status, progressIndicator, buildHealth)
     }
 
     ProgressCompleteEvent completeEvent(Long id, status='STATUS') {
