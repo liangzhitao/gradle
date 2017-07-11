@@ -79,6 +79,7 @@ public class BuildProgressLogger implements LoggerProvider {
     }
 
     private String getProgressWithIndicator() {
+        //TODO JJ: maybe we do not need to send the combined progress and indicator in the start event, if it is sufficient to start printing progress with the first progress event
         return buildProgressFormatter.getProgressIndicator() + buildProgressFormatter.getProgress();
     }
 
