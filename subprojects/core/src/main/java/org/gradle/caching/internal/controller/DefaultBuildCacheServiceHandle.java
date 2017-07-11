@@ -16,7 +16,6 @@
 
 package org.gradle.caching.internal.controller;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.caching.BuildCacheException;
@@ -105,13 +104,9 @@ class DefaultBuildCacheServiceHandle implements BuildCacheServiceHandle {
                     // Use the raw exception as the failure, not the wrapped
                     context.failed(e);
 
-                    if (e instanceof BuildCacheException) {
-                        reportFailure("load", "from", command.getKey(), e);
-                        recordFailure();
-                        return null;
-                    } else {
-                        throw new GradleException("Could not load entry " + command.getKey() + " from " + role.getDisplayName() + " build cache", e);
-                    }
+                    reportFailure("load", "from", command.getKey(), e);
+                    recordFailure();
+                    return null;
                 }
             }
 

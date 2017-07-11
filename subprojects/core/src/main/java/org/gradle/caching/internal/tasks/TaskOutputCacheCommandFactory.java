@@ -16,6 +16,7 @@
 
 package org.gradle.caching.internal.tasks;
 
+import org.apache.commons.io.FileUtils;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
@@ -28,6 +29,7 @@ import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginMetadata;
 import org.gradle.internal.time.Timer;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -77,7 +79,17 @@ public class TaskOutputCacheCommandFactory {
         @Override
         public BuildCacheLoadCommand.Result<TaskOutputOriginMetadata> load(InputStream input) {
             taskOutputsGenerationListener.beforeTaskOutputsGenerated();
-            final TaskOutputPacker.UnpackResult unpackResult = packer.unpack(outputProperties, input, taskOutputOriginFactory.createReader(task));
+            final TaskOutputPacker.UnpackResult unpackResult;
+            try {
+                unpackResult = packer.unpack(outputProperties, input, taskOutputOriginFactory.createReader(task));
+            } catch (RuntimeException e) {
+                try {
+                    cleanOutputProperties(outputProperties);
+                } catch (IOException eClean) {
+                    LOGGER.warn("Could not clean outputs for {} after failed load from cache", task, eClean);
+                }
+                throw e;
+            }
             LOGGER.info("Unpacked output for {} from cache (took {}).", task, clock.getElapsed());
 
             return new BuildCacheLoadCommand.Result<TaskOutputOriginMetadata>() {
@@ -91,6 +103,20 @@ public class TaskOutputCacheCommandFactory {
                     return unpackResult.originMetadata;
                 }
             };
+        }
+
+        private void cleanOutputProperties(SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties) throws IOException {
+            for (ResolvedTaskOutputFilePropertySpec outputProperty : outputProperties) {
+                File outputFile = outputProperty.getOutputFile();
+                if (outputFile != null && outputFile.exists()) {
+                    if (outputFile.isDirectory()) {
+                        FileUtils.cleanDirectory(outputFile);
+                    } else {
+                        FileUtils.forceDelete(outputFile);
+                    }
+                }
+            }
+            LOGGER.warn("Cleaned outputs for {} after failed load from cache", task);
         }
     }
 
