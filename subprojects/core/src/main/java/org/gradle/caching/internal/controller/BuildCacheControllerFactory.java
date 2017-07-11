@@ -21,7 +21,6 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
 import org.gradle.StartParameter;
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.tasks.GeneratedSubclasses;
@@ -42,6 +41,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.Path;
 import org.gradle.util.SingleMessageLogger;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;

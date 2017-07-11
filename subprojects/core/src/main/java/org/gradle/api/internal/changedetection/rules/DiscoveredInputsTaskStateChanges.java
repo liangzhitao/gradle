@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.rules;
 
 import com.google.common.collect.Iterators;
-import org.gradle.api.Nullable;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
@@ -31,6 +30,7 @@ import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNor
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;

@@ -18,10 +18,9 @@ package org.gradle.workers.internal;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Sets;
-
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Nullable;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 import java.util.Set;
