@@ -1,0 +1,68 @@
+/*
+ * Copyright 2017 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.ide.xcode.plugins;
+
+import org.gradle.api.Action;
+import org.gradle.api.Project;
+import org.gradle.ide.xcode.tasks.GenerateXcodeProjectFileTask;
+import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
+import org.gradle.plugins.ide.internal.IdePlugin;
+
+public class XcodePlugin extends IdePlugin {
+    @Override
+    protected String getLifecycleTaskName() {
+        return "xcode";
+    }
+
+    @Override
+    protected void onApply(final Project project) {
+        getLifecycleTask().setDescription("Generates XCode project files (xcodeproj, xcworkspace, ???)");
+        getCleanTask().setDescription("Cleans XCode project files (???, ???)");
+
+//        ideaModel = project.getExtensions().create("idea", IdeaModel.class);
+
+//        configureIdeaWorkspace(project);
+//        configureIdeaProject(project);
+//        configureIdeaModule(project);
+        configureForSwiftPlugin(project);
+//        configureForWarPlugin(project);
+//        configureForScalaPlugin();
+//        registerImlArtifact(project);
+//        linkCompositeBuildDependencies((ProjectInternal) project);
+    }
+
+    private void configureForSwiftPlugin(final Project project) {
+        project.getPlugins().withType(SwiftExecutablePlugin.class, new Action<SwiftExecutablePlugin>() {
+            @Override
+            public void execute(SwiftExecutablePlugin swiftExecutablePlugin) {
+                configureXcodeForSwift(project);
+            }
+        });
+    }
+
+    private void configureXcodeForSwift(Project project) {
+        if (isRoot(project)) {
+            GenerateXcodeProjectFileTask task = project.getTasks().create("pbxProject", GenerateXcodeProjectFileTask.class);
+
+            addWorker(task);
+        }
+    }
+
+    private static boolean isRoot(Project project) {
+        return project.getParent() == null;
+    }
+}

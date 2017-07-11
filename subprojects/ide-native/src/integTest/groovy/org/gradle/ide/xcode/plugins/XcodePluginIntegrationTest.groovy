@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,13 @@
  * limitations under the License.
  */
 
-dependencies {
-    compile libraries.groovy
-    compile project(':core')
-    compile project(":ide")
-    compile project(':platformNative')
-    compile project(':languageNative')
-    compile project(':testingNative')
-    compile 'com.googlecode.plist:dd-plist:1.19'
+package org.gradle.ide.xcode.plugins
+
+import org.gradle.integtests.fixtures.WellBehavedPluginTest
+
+class XcodePluginIntegrationTest extends WellBehavedPluginTest {
+    @Override
+    String getMainTask() {
+        return "xcode"
+    }
 }
-
-useTestFixtures()
-useTestFixtures(project: ":platformNative")
-useClassycle()
-
-sourceCompatibility = '1.7'
-targetCompatibility = '1.7'
