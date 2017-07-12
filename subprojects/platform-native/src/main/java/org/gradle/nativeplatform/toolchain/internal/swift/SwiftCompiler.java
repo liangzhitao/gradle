@@ -101,6 +101,7 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
                         .swiftModuleFile(new File(spec.getObjectFileDir(), spec.getModuleName() + ".swiftmodule"));
                 }
                 genericArgs.add("-v");
+                genericArgs.add("-g");
                 genericArgs.add("-emit-object");
 
                 File outputFileMapFile = new File(spec.getObjectFileDir(), "output-file-map.json");
