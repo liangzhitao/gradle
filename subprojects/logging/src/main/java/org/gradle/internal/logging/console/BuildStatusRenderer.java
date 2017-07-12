@@ -132,6 +132,7 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
         timerEnabled = true;
         currentPhaseProgressOperationId = progressStartEvent.getProgressOperationId().getId();
         currentBuildStatus = progressStartEvent.getShortDescription();
+        currentProgressIndicator = "";
     }
 
     private void phaseProgressed(ProgressEvent progressEvent) {
